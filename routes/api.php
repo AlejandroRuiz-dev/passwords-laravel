@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Http\Request;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,6 +12,14 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
+use Illuminate\Http\Request;
+
+Route::post('users/store', 'UserController@store');
+Route::post('login', 'UserController@login');
+Route::get('users/show/{user}', 'UserController@show');
+
+Route::group(['middleware' => ['auth']], function () {
+    Route::apiResource('categories', 'CategoryController');
+    Route::apiResource('passwords', 'PasswordController');
+    Route::apiResource('users', 'UserController');
 });
