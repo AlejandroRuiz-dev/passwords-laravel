@@ -74,9 +74,12 @@ class CategoryController extends Controller
         
         $user = User::where('email', $user_email)->first();
 
-        $categories = Category::where('id_user', $user->id)->get();
-
-        return response()->json(['Categorias' => $categories], 200);
+        if (isset($user)) {    
+           $categories = Category::where('id_user',$user->id)->get();
+            return response()->json([ "Categories" => $categories]);
+        }else{
+            return response()->json(["Error" => "No existe un usuario con ese mail"]);
+        }
     }
 
     /**
@@ -123,19 +126,19 @@ class CategoryController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Request $request)
     {
-        $res = Category::destroy($id);
-        if ($res) {
-            return response()->json([
-                'status' => '1',
-                'msg' => 'success'
-            ]);
-        } else {
-            return response()->json([
-                'status' => '0',
-                'msg' => 'fail'
-            ]);
-        }       
+        $user_email = $request->data->email;
+        
+        $user = User::where('email', $user_email)->first();
+
+        $category = Category::where('id_user',$user->id)->where('name',$request->name)->first();
+        
+        if (!isset($category)) {
+             return response()->json(["Error" => "No existe la categoria"], 401);
+        }else{
+            $category->delete();
+            return response()->json(["Success" => "Se ha borrado la categoria"], 201);
+        }
     }
 }

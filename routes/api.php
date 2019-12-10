@@ -16,7 +16,6 @@ use Illuminate\Http\Request;
 
 Route::post('users/store', 'UserController@store');
 Route::post('login', 'UserController@login');
-Route::get('users/show/{user}', 'UserController@show');
 
 Route::group(['middleware' => ['auth']], function () {
     Route::apiResource('categories', 'CategoryController');

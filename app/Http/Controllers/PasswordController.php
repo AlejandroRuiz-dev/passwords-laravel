@@ -68,9 +68,19 @@ class PasswordController extends Controller
         
         $user = User::where('email', $user_email)->first();
 
-        $passwords = $user->passwords();
+        $passwordArray = array();
 
-        return response()->json(['Passwords' => $passwords], 200);
+        if (isset($user)) {    
+            $categories = Category::where('id_user',$user->id)->get();
+            foreach ($categories as $key => $category) {
+             
+                $passwords = Password::where('id_category',$category->id)->get();
+                array_push($passwordArray,$passwords);
+            }
+             return response()->json([ "Passwords" => $passwordArray]);
+         }else{
+             return response()->json(["Error" => "No existe un usuario con ese mail"]);
+         }
     }
 
     /**
@@ -129,17 +139,25 @@ class PasswordController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Request $request)
     {
-        $res = Password::destroy($id);
-        if ($res) {
-            return response()->json([
-                'msg' => 'Usuario borrado'
-            ]);
-        } else {
-            return response()->json([
-                'msg' => 'No se ha podido borrar el usuario'
-            ]);
-        }       
+        $user_email = $request->data->email;
+        
+        $user = User::where('email', $user_email)->first();
+
+        $categorySearched = Category::where('id_user',$user->id)->where('name',$request->name)->first();
+        
+        if (!isset($categorySearched)) {
+             return response()->json(["Error" => "No existe la categoria"], 401);
+        }else{
+            $passwordSearched = Password::where('id_category',$categorySearched->id)->where('title',$request->title)->first();
+            if (!isset($passwordSearched)) {
+                 return response()->json(["Error" => "No existe la contraseña"], 401);
+            }else{                
+                $passwordSearched->delete();
+                return response()->json(["Success" => "Se ha borrado la contraseña"], 201);
+            }
+           
+        }
     }
 }

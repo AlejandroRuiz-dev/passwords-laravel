@@ -73,19 +73,26 @@ class UserController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Request $request)
     {
-        $user = User::find($id);
+        $user_email = $request->data->email;
         
-        $categories = Category::where('id_user', $id);
+        $user = User::where('email', $user_email)->first();
 
-        dd($categories);exit;
-        foreach ($categories as $key => $category) {
-            var_dump($category);
-            $passwords = $category->passwords();
-            foreach ($passwords as $key => $password) {
-                var_dump($password);
-            }
+        $infoToShow = array();
+        array_push($infoToShow, $user);
+        
+        if (isset($user)) {    
+           $categories = Category::where('id_user',$user->id)->get();
+           foreach ($categories as $key => $category) {
+               array_push($infoToShow, ["Category" => $category]);     
+               $passwords = Password::where('id_category',$category->id)->get();
+               array_push($infoToShow,["Password" => $passwords]);
+           }
+            return response()->json(["Info user" => $infoToShow]);
+        }else{
+            return response()->json(["Error" => "No existe un usuario con ese mail"]);
+
         }
     }
 
@@ -129,17 +136,6 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        $res = User::destroy($id);
-        if ($res) {
-            return response()->json([
-                'status' => '1',
-                'msg' => 'success'
-            ]);
-        } else {
-            return response()->json([
-                'status' => '0',
-                'msg' => 'fail'
-            ]);
-        }       
+
     }
 }
